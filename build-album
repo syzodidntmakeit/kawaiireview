@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+if [ -z "$1" ]; then
+  echo "Usage: ./build-album <slug>"
+  exit 1
+fi
+node "$(dirname "$0")/scripts/build_entry.mjs" album "$1"

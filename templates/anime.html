@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{title}} — Anime Review | KawaiiReview</title>
+  <link rel="stylesheet" href="../../assets/css/style.css">
+</head>
+<body>
+  <header>
+    <div class="container">
+      <a class="back" href="../../index.html">← Back to homepage</a>
+    </div>
+  </header>
+  <main class="post-container">
+    <section class="post-top">
+      <img class="post-cover post-cover-anime" src="./{{cover}}" alt="{{title}} key art">
+      <div class="post-details">
+        <h1 class="post-title">{{title}}</h1>
+        <div class="post-meta">{{meta}}</div>
+        <div class="post-runtime">{{runtime}}</div>
+        <div class="post-genres">{{genres}}</div>
+        <div class="post-score" aria-label="Score">{{score}}</div>
+      </div>
+    </section>
+    <section class="post-body">
+      <div class="synopsis">
+        <h2>Synopsis</h2>
+        {{synopsis}}
+      </div>
+      <div class="review">
+        <h2>Review</h2>
+        {{review}}
+      </div>
+    </section>
+  </main>
+  <footer>
+    <div class="container">
+      <p>Another blunt take from KawaiiReview.</p>
+    </div>
+  </footer>
+  <button id="back-to-top" aria-label="Back to top">↑ Top</button>
+  <script src="../../assets/js/main.js"></script>
+</body>
+</html>
