@@ -1,0 +1,21 @@
+{
+  "name": "kawaiireview",
+  "version": "1.0.0",
+  "description": "Dark pastel, no-bullshit archive of anime seasons and rap albums I actually care about. Built as a static prototype to visualize the final site before wiring up content generation or automation.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/syzodidntmakeit/kawaiireview.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "bugs": {
+    "url": "https://github.com/syzodidntmakeit/kawaiireview/issues"
+  },
+  "homepage": "https://github.com/syzodidntmakeit/kawaiireview#readme"
+}
