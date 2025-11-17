@@ -45,13 +45,23 @@ node scripts/kawaii.mjs build anime paranoia-agent
 # Build everything
 node scripts/kawaii.mjs build-all        # anime + album
 node scripts/kawaii.mjs build-all anime  # only anime
+
+# List available slugs
+node scripts/kawaii.mjs list
+node scripts/kawaii.mjs list album
+
+# Dry run (no files written)
+node scripts/kawaii.mjs new album "Madvillainy" --artist "Madvillain" --dry-run
+
+# Force overwrite an existing slug
+node scripts/kawaii.mjs new anime "Neon Genesis Evangelion" --year 1995 --overwrite
 ```
 
 Under the hood:
 
 1. **Anime metadata** comes from AniList’s GraphQL API (cover art, studios, air dates, synopsis). If AniList can’t find a match, the CLI falls back to Jikan.
 2. **Album metadata** comes from MusicBrainz + the Cover Art Archive (canonical release info, tags, artwork). When that fails, TheAudioDB and iTunes serve as fallbacks.
-3. The CLI prompts for optional score + score-caption, downloads cover art, writes `blog.md`, updates `data/*.json`, and refreshes the inline JSON used on `index.html` and the archive pages.
+3. The CLI prompts for optional score + score-caption, downloads cover art, writes `blog.md`, updates `data/*.json`, and refreshes the inline JSON used on `index.html` and the archive pages. Add `--dry-run` to preview metadata without touching the filesystem, or `--overwrite` to rebuild an existing slug from scratch.
 
 The legacy wrappers (`./new-anime`, `./new-album`, etc.) still work, but `scripts/kawaii.mjs` keeps everything in one place.
 
@@ -101,10 +111,11 @@ npx serve
 
 | Command | Description |
 | --- | --- |
-| `node scripts/kawaii.mjs new anime "<title>" [--year 2020]` | Scaffold an anime review via AniList (Jikan fallback). |
-| `node scripts/kawaii.mjs new album "<title>" --artist "Name"` | Scaffold an album via MusicBrainz (Cover Art Archive), fallback to TheAudioDB/iTunes. |
+| `node scripts/kawaii.mjs new anime "<title>" [--year 2020] [--dry-run] [--overwrite]` | Scaffold an anime review via AniList (Jikan fallback). Dry run previews metadata; overwrite replaces an existing slug. |
+| `node scripts/kawaii.mjs new album "<title>" --artist "Name"` | Scaffold an album via MusicBrainz (Cover Art Archive), fallback to TheAudioDB/iTunes. Same `--dry-run`/`--overwrite` options apply. |
 | `node scripts/kawaii.mjs build <anime|album> <slug>` | Regenerate a single review page. |
 | `node scripts/kawaii.mjs build-all [anime|album|all]` | Rebuild every generated page in one go. |
+| `node scripts/kawaii.mjs list [anime|album|all]` | Print the slugs currently stored under `anime/` and/or `album/`. |
 | `node scripts/new_review.mjs` | Legacy scaffold script (still interactive). |
 | `node scripts/build_entry.mjs <kind> <slug>` | Underlying build command used by the CLI/CI. |
 

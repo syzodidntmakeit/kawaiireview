@@ -24,6 +24,9 @@ const INLINE_TARGETS = {
 const rl = readline.createInterface({ input, output });
 const ask = async (prompt) => (await rl.question(prompt)).trim();
 
+const DRY_RUN = process.env.KAWAII_DRY_RUN === '1';
+const OVERWRITE = process.env.KAWAII_OVERWRITE === '1';
+
 const USER_AGENT = 'KawaiiReviewCLI/1.0 (kawaiireview.local)';
 const ANILIST_API = 'https://graphql.anilist.co';
 const MUSICBRAINZ_API = 'https://musicbrainz.org/ws/2';
@@ -504,12 +507,40 @@ async function createReview(kind, meta) {
   await ensureDir(baseDir);
   const slug = slugify(meta.title);
   const folder = path.join(baseDir, slug);
+  if (DRY_RUN) {
+    console.log(`[dry-run] Would create ${kind}/${slug}`);
+    console.log(
+      JSON.stringify(
+        {
+          title: meta.title,
+          owner: meta.owner,
+          runtime: meta.runtime,
+          runtime_detail: meta.runtimeDetail,
+          score: meta.score,
+          score_caption: meta.score_caption,
+          cover: meta.coverUrl,
+        },
+        null,
+        2
+      )
+    );
+    return;
+  }
+
+  let exists = false;
   try {
     await fs.access(folder);
-    throw new Error(`Folder already exists: ${path.relative(ROOT, folder)}`);
+    exists = true;
   } catch {
-    await fs.mkdir(folder, { recursive: true });
+    // ignore
   }
+  if (exists) {
+    if (!OVERWRITE) {
+      throw new Error(`Folder already exists: ${path.relative(ROOT, folder)} (use --overwrite)`);
+    }
+    await fs.rm(folder, { recursive: true, force: true });
+  }
+  await fs.mkdir(folder, { recursive: true });
 
   let coverExt = '.jpg';
   if (meta.coverUrl) {
