@@ -76,28 +76,52 @@ function markdownToHtml(markdown) {
     .join('\n');
 }
 
+function formatAlbumRuntime(minutes) {
+  if (!Number.isFinite(minutes) || minutes <= 0) return '';
+  const total = Math.round(minutes);
+  if (total < 60) return `${total} mins`;
+  const hrs = Math.floor(total / 60);
+  const mins = total % 60;
+  const hourLabel = `${hrs} hr${hrs === 1 ? '' : 's'}`;
+  if (mins === 0) return hourLabel;
+  return `${hourLabel} ${String(mins).padStart(2, '0')} mins`;
+}
+
+function formatAnimeRuntimeDetails(seasons, episodes) {
+  const seasonLabel =
+    Number.isFinite(seasons) && seasons > 0 ? `${seasons} Season${seasons === 1 ? '' : 's'}` : '';
+  const episodeLabel =
+    Number.isFinite(episodes) && episodes > 0
+      ? `${episodes} Episode${episodes === 1 ? '' : 's'}`
+      : '';
+  if (seasonLabel && episodeLabel) return `${seasonLabel} × ${episodeLabel}`;
+  return seasonLabel || episodeLabel || '';
+}
+
 function formatRuntime(kind, data) {
   if (data.runtime) return data.runtime;
   if (kind === 'album') {
     const minutes = Number(data.length_minutes ?? data.minutes);
-    if (Number.isFinite(minutes)) {
-      const hrs = Math.floor(minutes / 60);
-      const mins = Math.round(minutes % 60);
-      if (hrs > 0) return `${hrs}h ${mins}m`;
-      return `${mins}m`;
-    }
-    return '';
+    return formatAlbumRuntime(minutes);
   }
-  const seasonCount = Number(data.seasons ?? data.season_count ?? data.season);
-  const episodeCount = Number(data.episodes ?? data.episode_count ?? data.total_episodes);
-  const parts = [];
-  if (Number.isFinite(seasonCount)) {
-    parts.push(`${seasonCount} Season${seasonCount === 1 ? '' : 's'}`);
-  }
-  if (Number.isFinite(episodeCount)) {
-    parts.push(`${episodeCount} Episode${episodeCount === 1 ? '' : 's'}`);
-  }
-  return parts.join(' • ');
+  const seasons = Number(data.seasons ?? data.season_count ?? data.season);
+  const episodes = Number(data.episodes ?? data.episode_count ?? data.total_episodes);
+  return formatAnimeRuntimeDetails(seasons, episodes);
+}
+
+function splitList(value) {
+  if (!value) return [];
+  return value
+    .split(/[,•|]/)
+    .map((token) => token.trim())
+    .filter(Boolean);
+}
+
+function buildChipMarkup(tokens, className, fallback) {
+  const items = tokens.length ? tokens : [fallback];
+  return items
+    .map((token) => `<span class="${className}">${token}</span>`)
+    .join('\n          ');
 }
 
 async function updateInlineScripts(kind, jsonText) {
@@ -157,16 +181,39 @@ async function buildEntry(kind, slugArg) {
   const coverFile = data.cover || 'cover.jpg';
   const synopsisHtml = paragraphize(data.synopsis || '');
   const reviewHtml = markdownToHtml(body);
-  const scoreDisplay = data.score ?? 'TBD';
   const metaValue = kind === 'album' ? data.artist : data.studio;
   const runtimeDisplay = formatRuntime(kind, data);
+  const metaTokens = splitList(metaValue);
+  const metaChips = buildChipMarkup(metaTokens, 'meta-chip', 'Unknown');
+  const metaChipsWithRuntime = runtimeDisplay
+    ? `${metaChips}\n          <span class="meta-chip meta-chip-runtime">${runtimeDisplay}</span>`
+    : metaChips;
+  const genreChips = buildChipMarkup(splitList(data.genres), 'genre-chip', 'Uncategorized');
+  const scoreNumber = Number.parseFloat(data.score);
+  const scoreText = Number.isFinite(scoreNumber) ? scoreNumber.toFixed(1) : data.score || 'TBD';
+  const scoreRatio = Number.isFinite(scoreNumber)
+    ? Math.min(Math.max(scoreNumber / 10, 0), 1).toFixed(2)
+    : '0';
+  const scoreAria = Number.isFinite(scoreNumber)
+    ? `Score ${scoreText} out of 10`
+    : 'Unscored review';
+  const coverClass =
+    kind === 'anime' ? 'post-cover post-cover-anime' : 'post-cover post-cover-album';
   const replacements = {
     title: data.title || slugArg,
+    cover_class: coverClass,
     cover: coverFile,
-    meta: metaValue || 'Unknown',
-    runtime: runtimeDisplay || '',
-    genres: data.genres || '',
-    score: scoreDisplay,
+    eyebrow: data.eyebrow || (kind === 'anime' ? 'Anime review' : 'Album review'),
+    meta_label: kind === 'anime' ? 'Studios' : 'Artists',
+    meta_chips: metaChipsWithRuntime,
+    runtime_detail: data.runtime_detail || '',
+    genre_chips: genreChips,
+    score_ratio: scoreRatio,
+    score_text: scoreText,
+    score_caption:
+      data.score_caption ||
+      (kind === 'anime' ? 'Existential dread scale.' : 'Certified spin-or-skip.'),
+    score_aria: scoreAria,
     synopsis: synopsisHtml,
     review: reviewHtml,
   };

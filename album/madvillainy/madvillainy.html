@@ -13,21 +13,31 @@
     </div>
   </header>
   <main class="post-container">
-    <section class="post-top">
-      <img class="post-cover" src="./cover.jpg" alt="Madvillainy Instrumentals album cover">
+    <section class="post-top post-hero">
+      <div class="post-cover-wrap">
+        <img class="post-cover post-cover-album" src="./cover.png" alt="Madvillainy Instrumentals album cover">
+      </div>
       <div class="post-details">
         <h1 class="post-title">Madvillainy Instrumentals</h1>
-        <div class="post-meta">Madvillain</div>
-        <div class="post-runtime">48m</div>
-        <div class="post-genres">Hip-Hop/Rap</div>
-        <div class="post-score" aria-label="Score">9.8</div>
+        <div class="post-meta post-meta-chips" aria-label="Artists">
+          <span class="meta-chip">Madvillain</span>
+          <span class="meta-chip meta-chip-runtime">48 mins</span>
+        </div>
+        <div class="post-runtime">Released Mar 2004 · Stones Throw</div>
+        <div class="post-score" data-score="0.98" aria-label="Score 9.8 out of 10">
+          <span class="score-label">Score</span>
+          <div class="score-ring">
+            <svg class="score-ring-visual" viewBox="0 0 120 120" role="presentation" aria-hidden="true">
+              <circle class="score-ring-track" cx="60" cy="60" r="52"></circle>
+              <circle class="score-ring-progress" cx="60" cy="60" r="52"></circle>
+            </svg>
+            <span class="score-value">9.8</span>
+          </div>
+          <p class="score-caption">Blunted genius in 46 minutes.</p>
+        </div>
       </div>
     </section>
     <section class="post-body">
-      <div class="synopsis">
-        <h2>Synopsis</h2>
-        <p>Madvillainy is the only studio album by hip-hop duo Madvillain, consisting of MF Doom and producer Madlib, released March 23, 2004, on Stones Throw Records. The album was recorded between 2002 and 2004, with Madlib creating most instrumentals during a trip to Brazil in his hotel room using minimal equipment: a Boss SP-303 sampler, turntable, and tape deck. Fourteen months before release, an unfinished demo was stolen and leaked online, causing the frustrated duo to stop working on the album temporarily and pursue other solo projects.</p>
-      </div>
       <div class="review">
         <h2>Review</h2>
         <p>Madvillainy is a clinic in how to make hip-hop feel simultaneously stoned, sharp, and completely alien. This album sounds like it was assembled by two people who fundamentally don't give a damn about what you expect from a rap record—and that's exactly why it works.<br>The production is a fever dream. Madlib's sampling choices are deliberately obscure and off-kilter, pulling from dusty records that feel like they've been buried under a São Paulo hotel room floor for decades. The beats feel unfinished in the best way possible—skeletal, lo-fi, and deliberately anti-commercial. Nothing here sounds like it wants radio play, and that's its greatest strength.<br>DOOM's MCing is at its absolute peak. His voice is relaxed, almost drowsy, but the wordplay is dense with comic book references, internal rhymes, and surreal imagery. He barely bothers with hooks or choruses, instead dropping single verses that say everything they need to say in two minutes and then vanishing into the ether. It's conversational supervillainy—casual menace delivered with the energy of someone who's already three blunts deep.<br>The song structures are gloriously weird. Twenty-two tracks in 46 minutes means most songs barely crack the two-minute mark. It plays like a mixtape assembled by someone with severe ADHD and impeccable taste. There are instrumental interludes, false starts, and songs that end just when you think they're getting going. It's disorienting, but in a way that keeps you constantly engaged.<br>What makes Madvillainy truly special is how it feels like eavesdropping on a private creative language between two people. DOOM and Madlib built something that doesn't sound like anyone else, before or since. It's messy, brilliant, and utterly uncompromising—a masterpiece that never once asks for your permission to be one.</p>
@@ -36,7 +46,12 @@
   </main>
   <footer>
     <div class="container">
-      <p>Another blunt take from KawaiiReview.</p>
+      <p>© 2025 kawaii-san.org. All wrongs reserved.</p>
+      <p>
+        <a class="license-link" href="https://opensource.org/licenses/MIT" target="_blank" rel="noreferrer">
+          Licensed under the MIT License. Don't be a bitch.
+        </a>
+      </p>
     </div>
   </footer>
   <button id="back-to-top" aria-label="Back to top">↑ Top</button>

@@ -13,21 +13,30 @@
     </div>
   </header>
   <main class="post-container">
-    <section class="post-top">
-      <img class="post-cover" src="./{{cover}}" alt="{{title}} album cover">
+    <section class="post-top post-hero">
+      <div class="post-cover-wrap">
+        <img class="{{cover_class}}" src="./{{cover}}" alt="{{title}} album cover">
+      </div>
       <div class="post-details">
         <h1 class="post-title">{{title}}</h1>
-        <div class="post-meta">{{meta}}</div>
-        <div class="post-runtime">{{runtime}}</div>
-        <div class="post-genres">{{genres}}</div>
-        <div class="post-score" aria-label="Score">{{score}}</div>
+        <div class="post-meta post-meta-chips" aria-label="{{meta_label}}">
+          {{meta_chips}}
+        </div>
+        <div class="post-runtime">{{runtime_detail}}</div>
+        <div class="post-score" data-score="{{score_ratio}}" aria-label="{{score_aria}}">
+          <span class="score-label">Score</span>
+          <div class="score-ring">
+            <svg class="score-ring-visual" viewBox="0 0 120 120" role="presentation" aria-hidden="true">
+              <circle class="score-ring-track" cx="60" cy="60" r="52"></circle>
+              <circle class="score-ring-progress" cx="60" cy="60" r="52"></circle>
+            </svg>
+            <span class="score-value">{{score_text}}</span>
+          </div>
+          <p class="score-caption">{{score_caption}}</p>
+        </div>
       </div>
     </section>
     <section class="post-body">
-      <div class="synopsis">
-        <h2>Synopsis</h2>
-        {{synopsis}}
-      </div>
       <div class="review">
         <h2>Review</h2>
         {{review}}
@@ -36,7 +45,12 @@
   </main>
   <footer>
     <div class="container">
-      <p>Another blunt take from KawaiiReview.</p>
+      <p>© 2025 kawaii-san.org. All wrongs reserved.</p>
+      <p>
+        <a class="license-link" href="https://opensource.org/licenses/MIT" target="_blank" rel="noreferrer">
+          Licensed under the MIT License. Don't be a bitch.
+        </a>
+      </p>
     </div>
   </footer>
   <button id="back-to-top" aria-label="Back to top">↑ Top</button>

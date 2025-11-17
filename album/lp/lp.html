@@ -13,21 +13,31 @@
     </div>
   </header>
   <main class="post-container">
-    <section class="post-top">
-      <img class="post-cover" src="./cover.jpg" alt="LP! album cover">
+    <section class="post-top post-hero">
+      <div class="post-cover-wrap">
+        <img class="post-cover post-cover-album" src="./cover.jpg" alt="LP! album cover">
+      </div>
       <div class="post-details">
         <h1 class="post-title">LP!</h1>
-        <div class="post-meta">JPEGMAFIA</div>
-        <div class="post-runtime">57m</div>
-        <div class="post-genres"></div>
-        <div class="post-score" aria-label="Score">8.6</div>
+        <div class="post-meta post-meta-chips" aria-label="Artists">
+          <span class="meta-chip">JPEGMAFIA</span>
+          <span class="meta-chip meta-chip-runtime">57 mins</span>
+        </div>
+        <div class="post-runtime">Released Nov 2021 · Republic (reluctantly)</div>
+        <div class="post-score" data-score="0.86" aria-label="Score 8.6 out of 10">
+          <span class="score-label">Score</span>
+          <div class="score-ring">
+            <svg class="score-ring-visual" viewBox="0 0 120 120" role="presentation" aria-hidden="true">
+              <circle class="score-ring-track" cx="60" cy="60" r="52"></circle>
+              <circle class="score-ring-progress" cx="60" cy="60" r="52"></circle>
+            </svg>
+            <span class="score-value">8.6</span>
+          </div>
+          <p class="score-caption">Peggy's offline tantrum, we stan.</p>
+        </div>
       </div>
     </section>
     <section class="post-body">
-      <div class="synopsis">
-        <h2>Synopsis</h2>
-        <p>Auto-imported via TheAudioDB for LP!. Replace with your synopsis.</p>
-      </div>
       <div class="review">
         <h2>Review</h2>
         <p>LP! represents JPEGMAFIA at his most technically refined and creatively liberated—his fourth studio album and final release under Republic Records is a sprawling statement of artistic independence that somehow manages to be his most accessible and experimental work simultaneously. The offline version especially showcases Peggy's complete vision: glitchy, video-gamey production that blurs genre lines through unorthodox sampling, from flipping old R&B tunes into ethereal beasts to layering Evangelion-like synths, all while he produces, writes, mixes, and masters everything himself. What makes it his best is the sheer maturation of his sound—the production quality has evolved with each record, and here he's perfected the balance between the abrasive noise that made him notorious and the melodic sensibilities that make tracks like his Britney Spears interpolation both confrontational and oddly beautiful. It's a refreshing drink of water in the burning heat of unoriginality, with Peggy piercing through experimental production frontiers while maintaining the satirical edge that tackles internet culture, industry exploitation, and his own artistic frustrations with a controlled anger that never sacrifices his playful idiosyncrasies. The album's dual existence—censored streaming version versus his true offline vision—is itself a middle finger to label constraints, making LP! not just his technically strongest work but his most conceptually complete artistic statement.</p>
@@ -36,7 +46,12 @@
   </main>
   <footer>
     <div class="container">
-      <p>Another blunt take from KawaiiReview.</p>
+      <p>© 2025 kawaii-san.org. All wrongs reserved.</p>
+      <p>
+        <a class="license-link" href="https://opensource.org/licenses/MIT" target="_blank" rel="noreferrer">
+          Licensed under the MIT License. Don't be a bitch.
+        </a>
+      </p>
     </div>
   </footer>
   <button id="back-to-top" aria-label="Back to top">↑ Top</button>

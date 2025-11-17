@@ -7,6 +7,10 @@ cover: "cover.jpg"
 source_url: "https://music.apple.com/us/album/to-pimp-a-butterfly/1440871877?uo=4"
 created: "2025-11-15T09:11:18.024Z"
 type: "album"
+eyebrow: "Free-jazz rap sermon"
+runtime: "1 hr 19 mins"
+runtime_detail: "Released Mar 2015 · Top Dawg / Aftermath"
+score_caption: "Conscious brilliance, slightly over-eager."
 synopsis: "Auto-imported via iTunes Search API for To Pimp a Butterfly. Replace with your synopsis."
 score: 9.4
 ---

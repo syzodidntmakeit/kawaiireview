@@ -151,3 +151,10 @@ function initCarouselControls() {
 
 CAROUSELS.forEach(populateCarousel);
 initCarouselControls();
+
+document.querySelectorAll('.post-score[data-score]').forEach((node) => {
+  const raw = Number.parseFloat(node.dataset.score);
+  if (!Number.isFinite(raw)) return;
+  const clamped = Math.min(Math.max(raw, 0), 1);
+  node.style.setProperty('--score-value', clamped);
+});

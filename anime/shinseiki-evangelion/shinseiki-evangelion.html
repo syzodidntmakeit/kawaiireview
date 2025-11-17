@@ -13,14 +13,36 @@
     </div>
   </header>
   <main class="post-container">
-    <section class="post-top">
-      <img class="post-cover post-cover-anime" src="./cover.jpg" alt="Shinseiki Evangelion key art">
+    <section class="post-top post-hero">
+      <div class="post-cover-wrap">
+        <img class="post-cover post-cover-anime" src="./cover.jpg" alt="Shinseiki Evangelion key art">
+      </div>
       <div class="post-details">
         <h1 class="post-title">Shinseiki Evangelion</h1>
-        <div class="post-meta">Gainax, Tatsunoko Production</div>
-        <div class="post-runtime">{{runtime}}</div>
-        <div class="post-genres">Avant Garde, Award Winning, Drama, Sci-Fi, Suspense</div>
-        <div class="post-score" aria-label="Score">9.9</div>
+        <div class="post-meta post-meta-chips" aria-label="Studios">
+          <span class="meta-chip">Gainax</span>
+          <span class="meta-chip">Tatsunoko Production</span>
+          <span class="meta-chip meta-chip-runtime">1 Season × 26 Episodes</span>
+        </div>
+        <div class="post-genres post-genre-chips" aria-label="Genres">
+          <span class="genre-chip">Avant Garde</span>
+          <span class="genre-chip">Award Winning</span>
+          <span class="genre-chip">Drama</span>
+          <span class="genre-chip">Sci-Fi</span>
+          <span class="genre-chip">Suspense</span>
+        </div>
+        <div class="post-runtime">Aired Oct 1995 – Mar 1996 · Hideaki Anno</div>
+        <div class="post-score" data-score="0.99" aria-label="Score 9.9 out of 10">
+          <span class="score-label">Score</span>
+          <div class="score-ring">
+            <svg class="score-ring-visual" viewBox="0 0 120 120" role="presentation" aria-hidden="true">
+              <circle class="score-ring-track" cx="60" cy="60" r="52"></circle>
+              <circle class="score-ring-progress" cx="60" cy="60" r="52"></circle>
+            </svg>
+            <span class="score-value">9.9</span>
+          </div>
+          <p class="score-caption">Existential gut punch perfection.</p>
+        </div>
       </div>
     </section>
     <section class="post-body">
@@ -39,7 +61,12 @@
   </main>
   <footer>
     <div class="container">
-      <p>Another blunt take from KawaiiReview.</p>
+      <p>© 2025 kawaii-san.org. All wrongs reserved.</p>
+      <p>
+        <a class="license-link" href="https://opensource.org/licenses/MIT" target="_blank" rel="noreferrer">
+          Licensed under the MIT License. Don't be a bitch.
+        </a>
+      </p>
     </div>
   </footer>
   <button id="back-to-top" aria-label="Back to top">↑ Top</button>

@@ -24,6 +24,12 @@ const INLINE_TARGETS = {
 const rl = readline.createInterface({ input, output });
 const ask = async (prompt) => (await rl.question(prompt)).trim();
 
+const USER_AGENT = 'KawaiiReviewCLI/1.0 (kawaiireview.local)';
+const ANILIST_API = 'https://graphql.anilist.co';
+const MUSICBRAINZ_API = 'https://musicbrainz.org/ws/2';
+const COVER_ART_API = 'https://coverartarchive.org/release';
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
 function slugify(text) {
   return (text || '')
     .toLowerCase()
@@ -31,23 +37,56 @@ function slugify(text) {
     .replace(/^-+|-+$/g, '') || 'entry';
 }
 
-function formatMinutes(minutes) {
-  if (!Number.isFinite(minutes)) return '';
-  const hrs = Math.floor(minutes / 60);
-  const mins = Math.round(minutes % 60);
-  if (hrs > 0) return `${hrs}h ${mins}m`;
-  return `${mins}m`;
+function stripHtml(text) {
+  if (!text) return '';
+  return text
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<\/?[^>]+(>|$)/g, '')
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/&amp;/gi, '&')
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;/gi, "'")
+    .trim();
+}
+
+function formatAlbumRuntime(minutes) {
+  if (!Number.isFinite(minutes) || minutes <= 0) return '';
+  const total = Math.round(minutes);
+  if (total < 60) {
+    return `${total} mins`;
+  }
+  const hrs = Math.floor(total / 60);
+  const mins = total % 60;
+  const hourLabel = `${hrs} hr${hrs === 1 ? '' : 's'}`;
+  if (mins === 0) return hourLabel;
+  const minuteLabel = `${String(mins).padStart(2, '0')} mins`;
+  return `${hourLabel} ${minuteLabel}`;
 }
 
 function formatAnimeRuntime(seasons, episodes) {
-  const parts = [];
-  if (Number.isFinite(seasons) && seasons > 0) {
-    parts.push(`${seasons} Season${seasons === 1 ? '' : 's'}`);
+  const seasonLabel =
+    Number.isFinite(seasons) && seasons > 0 ? `${seasons} Season${seasons === 1 ? '' : 's'}` : '';
+  const episodeLabel =
+    Number.isFinite(episodes) && episodes > 0
+      ? `${episodes} Episode${episodes === 1 ? '' : 's'}`
+      : '';
+  if (seasonLabel && episodeLabel) {
+    return `${seasonLabel} × ${episodeLabel}`;
   }
-  if (Number.isFinite(episodes) && episodes > 0) {
-    parts.push(`${episodes} Episode${episodes === 1 ? '' : 's'}`);
-  }
-  return parts.join(' • ');
+  return seasonLabel || episodeLabel || '';
+}
+
+function formatDateLabel(date) {
+  if (!date || !date.year) return '';
+  const month = date.month ? `${MONTHS[date.month - 1]} ` : '';
+  return `${month}${date.year}`;
+}
+
+function buildAiringWindow(start, end) {
+  const startLabel = formatDateLabel(start);
+  if (!startLabel) return '';
+  const endLabel = end && end.year ? formatDateLabel(end) : 'Present';
+  return `Aired ${startLabel} – ${endLabel}`;
 }
 
 async function ensureDir(dir) {
@@ -62,7 +101,7 @@ async function downloadImage(url, dest) {
   await fs.writeFile(dest, buffer);
 }
 
-async function fetchAnimeCandidates(title, year) {
+async function fetchAnimeFromJikan(title, year) {
   const params = new URLSearchParams({ q: title, limit: '5', order_by: 'score', sort: 'desc' });
   const response = await fetch(`https://api.jikan.moe/v4/anime?${params.toString()}`);
   if (!response.ok) throw new Error(`Jikan API error: ${response.status}`);
@@ -89,16 +128,93 @@ async function fetchAnimeCandidates(title, year) {
       coverUrl: images.large_image_url || images.image_url || '',
       sourceUrl: choice?.url || '',
       runtime: formatAnimeRuntime(seasons, episodes),
+      runtimeDetail: choice?.aired?.string ? `Aired ${choice.aired.string}` : '',
+      source: 'jikan',
     };
   });
 }
 
-async function fetchAlbumCandidates(title, year, artist) {
-  const audioDb = await fetchAlbumFromTheAudioDb(title, year, artist);
-  if (audioDb.length) return audioDb;
-  const itunes = await fetchAlbumFromItunes(title, year, artist);
-  if (itunes.length) return itunes;
-  return [];
+async function musicBrainzRequest(path) {
+  const url = `${MUSICBRAINZ_API}${path}`;
+  const response = await fetch(url, { headers: { 'User-Agent': USER_AGENT } });
+  if (!response.ok) return null;
+  return response.json();
+}
+
+async function fetchCoverArtUrl(mbid) {
+  try {
+    const response = await fetch(`${COVER_ART_API}/${mbid}`, { headers: { 'User-Agent': USER_AGENT } });
+    if (!response.ok) return '';
+    const data = await response.json();
+    const primary = data?.images?.find((img) => img.front) || data?.images?.[0];
+    return primary?.image || primary?.thumbnails?.large || '';
+  } catch {
+    return '';
+  }
+}
+
+function formatReleaseRuntimeDetail(releaseDate) {
+  if (!releaseDate) return '';
+  return `Released ${releaseDate}`;
+}
+
+async function populateMusicBrainzRuntime(meta) {
+  if (!meta?._mbid) return;
+  try {
+    const detail = await musicBrainzRequest(`/release/${meta._mbid}?inc=recordings&fmt=json`);
+    if (!detail) return;
+    let totalMs = 0;
+    (detail.media || []).forEach((medium) => {
+      (medium.tracks || []).forEach((track) => {
+        if (Number.isFinite(track.length)) {
+          totalMs += track.length;
+        }
+      });
+    });
+    if (totalMs > 0) {
+      meta.lengthMinutes = totalMs / 60000;
+      meta.runtime = formatAlbumRuntime(meta.lengthMinutes);
+    }
+    if (!meta.runtimeDetail && detail.date) {
+      meta.runtimeDetail = formatReleaseRuntimeDetail(detail.date);
+    }
+  } catch {
+    // ignore
+  }
+}
+
+async function fetchAlbumFromMusicBrainz(title, year, artist) {
+  const filters = [`release:"${title}"`];
+  if (artist) filters.push(`artist:"${artist}"`);
+  if (year) filters.push(`date:${year}`);
+  const query = encodeURIComponent(filters.join(' AND '));
+  const data = await musicBrainzRequest(`/release/?query=${query}&fmt=json&limit=5`);
+  if (!data?.releases?.length) return [];
+  const candidates = [];
+  for (const release of data.releases) {
+    const coverUrl = await fetchCoverArtUrl(release.id);
+    if (!coverUrl) continue;
+    const owner = (release['artist-credit'] || [])
+      .map((credit) => credit.name || credit.artist?.name)
+      .filter(Boolean)
+      .join(', ');
+    const tags = (release.tags || []).map((tag) => tag.name).join(', ');
+    candidates.push({
+      title: release.title || title,
+      owner: owner || artist || 'Unknown',
+      year: release.date ? Number(release.date.slice(0, 4)) : year,
+      genres: tags,
+      synopsis: '',
+      coverUrl,
+      sourceUrl: `https://musicbrainz.org/release/${release.id}`,
+      lengthMinutes: null,
+      runtime: '',
+      runtimeDetail: formatReleaseRuntimeDetail(release.date),
+      source: 'musicbrainz',
+      _mbid: release.id,
+    });
+  }
+  return candidates;
 }
 
 async function fetchAlbumFromTheAudioDb(title, year, artist) {
@@ -141,7 +257,9 @@ async function fetchAlbumFromTheAudioDb(title, year, artist) {
         ? `https://musicbrainz.org/release/${choice.strMusicBrainzID}`
         : '',
       lengthMinutes: minutes,
-      runtime: formatMinutes(minutes),
+      runtime: formatAlbumRuntime(minutes),
+      runtimeDetail: choice?.intYearReleased ? `Released ${choice.intYearReleased}` : '',
+      source: 'theaudiodb',
     };
   });
 }
@@ -197,7 +315,7 @@ async function fetchAlbumFromItunes(title, year, artist) {
             .reduce((sum, track) => sum + (track.trackTimeMillis || 0), 0);
           if (totalMillis > 0) {
             lengthMinutes = Math.round((totalMillis / 60000) * 100) / 100;
-            runtimeLabel = formatMinutes(lengthMinutes);
+            runtimeLabel = formatAlbumRuntime(lengthMinutes);
           }
         }
       } catch {
@@ -213,7 +331,9 @@ async function fetchAlbumFromItunes(title, year, artist) {
       coverUrl,
       sourceUrl: choice?.collectionViewUrl || '',
       lengthMinutes,
-      runtime: runtimeLabel || formatMinutes(lengthMinutes),
+      runtime: runtimeLabel || formatAlbumRuntime(lengthMinutes),
+      runtimeDetail: choice?.releaseDate ? `Released ${choice.releaseDate.slice(0, 10)}` : '',
+      source: 'itunes',
     });
   }
   return normalized;
@@ -258,8 +378,11 @@ async function chooseCandidate(kind, candidates) {
 
 async function collectRuntime(kind, meta) {
   if (kind === 'album') {
+    if (meta?.source === 'musicbrainz' && (!meta.runtime || !meta.lengthMinutes)) {
+      await populateMusicBrainzRuntime(meta);
+    }
     if (!meta.runtime && Number.isFinite(meta.lengthMinutes)) {
-      meta.runtime = formatMinutes(meta.lengthMinutes);
+      meta.runtime = formatAlbumRuntime(meta.lengthMinutes);
     }
   } else {
     if (!Number.isFinite(meta.seasons)) {
@@ -269,6 +392,22 @@ async function collectRuntime(kind, meta) {
       const episodeCount = Number.isFinite(meta.episodes) ? meta.episodes : null;
       meta.runtime = formatAnimeRuntime(meta.seasons, episodeCount);
     }
+  }
+}
+
+async function collectScore(meta) {
+  const answer = await ask('Score (0-10, leave blank to skip): ');
+  if (answer) {
+    const value = Number.parseFloat(answer);
+    if (Number.isFinite(value)) {
+      meta.score = Math.min(Math.max(value, 0), 10);
+    } else {
+      meta.score = answer;
+    }
+  }
+  const caption = await ask('Score caption (optional): ');
+  if (caption) {
+    meta.score_caption = caption;
   }
 }
 
@@ -285,6 +424,9 @@ function buildFrontmatter({
   episodes,
   lengthMinutes,
   runtime,
+  score,
+  runtimeDetail,
+  scoreCaption,
 }) {
   const timestamp = new Date().toISOString();
   const lines = [
@@ -309,7 +451,9 @@ function buildFrontmatter({
 
   lines.push(
     `runtime: ${JSON.stringify(runtime || '')}`,
-    'score: null',
+    `score: ${JSON.stringify(score ?? null)}`,
+    `runtime_detail: ${JSON.stringify(runtimeDetail || '')}`,
+    `score_caption: ${JSON.stringify(scoreCaption || '')}`,
     '---',
     '',
     '## Review',
@@ -399,6 +543,9 @@ async function createReview(kind, meta) {
     episodes: meta.episodes,
     lengthMinutes: meta.lengthMinutes,
     runtime: meta.runtime,
+    score: meta.score,
+    runtimeDetail: meta.runtimeDetail,
+    scoreCaption: meta.score_caption,
   });
   await fs.writeFile(path.join(folder, 'blog.md'), markdown, 'utf8');
 
@@ -483,6 +630,7 @@ async function run() {
     }
     const meta = await chooseCandidate(command, candidates);
     await collectRuntime(command, meta);
+    await collectScore(meta);
     await createReview(command, meta);
   } catch (err) {
     console.error(err.message);
@@ -493,3 +641,69 @@ async function run() {
 }
 
 run();
+async function fetchAnimeFromAniList(title, year) {
+  const query = `
+    query ($search: String, $year: Int) {
+      Page(perPage: 5) {
+        media(search: $search, type: ANIME, seasonYear: $year) {
+          title { romaji english native }
+          description(asHtml: true)
+          episodes
+          seasonYear
+          startDate { year month day }
+          endDate { year month day }
+          coverImage { extraLarge large }
+          studios(isMain: true) { nodes { name } }
+          genres
+          siteUrl
+        }
+      }
+    }
+  `;
+  try {
+    const response = await fetch(ANILIST_API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query, variables: { search: title, year } }),
+    });
+    if (!response.ok) throw new Error('AniList request failed');
+    const payload = await response.json();
+    const media = payload?.data?.Page?.media ?? [];
+    return media
+      .map((entry) => {
+        const studioNames = (entry?.studios?.nodes ?? []).map((node) => node?.name).filter(Boolean);
+        return {
+          title: entry?.title?.romaji || entry?.title?.english || entry?.title?.native || title,
+          owner: studioNames.join(', ') || 'Unknown',
+          year: entry?.seasonYear || entry?.startDate?.year || year,
+          genres: (entry?.genres ?? []).join(', '),
+          synopsis: stripHtml(entry?.description || ''),
+          coverUrl: entry?.coverImage?.extraLarge || entry?.coverImage?.large || '',
+          sourceUrl: entry?.siteUrl || '',
+          seasons: 1,
+          episodes: entry?.episodes ?? null,
+          runtime: formatAnimeRuntime(1, entry?.episodes ?? null),
+          runtimeDetail: buildAiringWindow(entry?.startDate, entry?.endDate),
+          source: 'anilist',
+        };
+      })
+      .filter((entry) => entry.coverUrl);
+  } catch {
+    return [];
+  }
+}
+
+async function fetchAnimeCandidates(title, year) {
+  const aniList = await fetchAnimeFromAniList(title, year);
+  if (aniList.length) return aniList;
+  return fetchAnimeFromJikan(title, year);
+}
+async function fetchAlbumCandidates(title, year, artist) {
+  const musicBrainz = await fetchAlbumFromMusicBrainz(title, year, artist);
+  if (musicBrainz.length) return musicBrainz;
+  const audioDb = await fetchAlbumFromTheAudioDb(title, year, artist);
+  if (audioDb.length) return audioDb;
+  const itunes = await fetchAlbumFromItunes(title, year, artist);
+  if (itunes.length) return itunes;
+  return [];
+}

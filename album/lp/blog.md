@@ -7,9 +7,12 @@ cover: "cover.jpg"
 source_url: "https://musicbrainz.org/release/c89e9cff-c0c9-4e34-95e7-185056956caf"
 created: "2025-11-15T09:46:04.106Z"
 type: "album"
+eyebrow: "DIY chaos pop"
+runtime_detail: "Released Nov 2021 · Republic (reluctantly)"
+score_caption: "Peggy's offline tantrum, we stan."
 synopsis: "Auto-imported via TheAudioDB for LP!. Replace with your synopsis."
 length_minutes: ""
-runtime: "57m"
+runtime: "57 mins"
 score: 8.6
 ---
 
