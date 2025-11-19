@@ -7,18 +7,23 @@
   <link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body>
-  <header>
+  <nav class="site-nav" aria-label="Primary navigation">
     <div class="container">
-      <nav>
+      <div class="nav-bar">
         <a class="brand" href="#">KawaiiReview</a>
-        <div class="nav-links">
+        <button id="nav-toggle" class="nav-toggle" type="button" aria-label="Toggle navigation" aria-expanded="false" aria-controls="primary-nav">
+          <span class="nav-toggle-bar"></span>
+          <span class="nav-toggle-bar"></span>
+          <span class="nav-toggle-bar"></span>
+        </button>
+        <div class="nav-links" id="primary-nav">
           <a href="#anime">Anime</a>
           <a href="#albums">Albums</a>
           <a href="contact.html">Contact</a>
         </div>
-      </nav>
+      </div>
     </div>
-  </header>
+  </nav>
 
   <main class="container">
     <section id="anime">
@@ -54,7 +59,8 @@
 
   <footer>
     <div class="container">
-      <p>Made for fun. Hosted wherever static pages live.</p>
+      <p>© 2025 kawaii-san.org. All wrongs reserved.</p>
+      <p>Licensed under the <a href="LICENSE" download>MIT License</a>. Don't be a bitch.</p>
     </div>
   </footer>
 
