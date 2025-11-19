@@ -129,6 +129,7 @@ Legacy helpers (`new-anime`, `new-album`, etc.) still exist, but the consolidate
 
 ## Future Plans
 
+- **Update mobile viewing** - Instead of 50%, the images of the pages should be even smaller for more vertical devices. Maybe try 30%. 
 - **Search/filter UI** – Live filtering across anime + albums, with chips for studios/genres to fast-filter on the client.
 - **RSS/JSON feed** – Auto-export the latest reviews (title, score, summary) for syndication.
 - **Accessibility polish** – Better focus states, reduced-motion variants for the synopsis animation, and more descriptive aria labels on carousel controls.
