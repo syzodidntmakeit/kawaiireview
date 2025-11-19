@@ -9,6 +9,27 @@ if (backToTop) {
   });
 }
 
+const navToggle = document.getElementById('nav-toggle');
+const primaryNav = document.getElementById('primary-nav');
+
+if (navToggle && primaryNav) {
+  const closeMenu = () => {
+    primaryNav.classList.remove('is-open');
+    navToggle.classList.remove('is-open');
+    navToggle.setAttribute('aria-expanded', 'false');
+  };
+
+  navToggle.addEventListener('click', () => {
+    const isOpen = primaryNav.classList.toggle('is-open');
+    navToggle.classList.toggle('is-open', isOpen);
+    navToggle.setAttribute('aria-expanded', String(isOpen));
+  });
+
+  primaryNav.querySelectorAll('a').forEach((link) => {
+    link.addEventListener('click', closeMenu);
+  });
+}
+
 const CAROUSELS = [
   {
     type: 'anime',
@@ -158,3 +179,97 @@ document.querySelectorAll('.post-score[data-score]').forEach((node) => {
   const clamped = Math.min(Math.max(raw, 0), 1);
   node.style.setProperty('--score-value', clamped);
 });
+
+function initSynopsisPreviews() {
+  const DEFAULT_HEIGHT = 260;
+  const instances = [];
+  let resizeTimer;
+
+  const scheduleResize = () => {
+    window.clearTimeout(resizeTimer);
+    resizeTimer = window.setTimeout(() => {
+      instances.forEach((instance) => instance.updateExpanded());
+    }, 150);
+  };
+
+  document.querySelectorAll('.synopsis').forEach((container) => {
+    const heading = container.querySelector('h2');
+    if (!heading) return;
+
+    let body = container.querySelector('.synopsis-body');
+    if (!body) {
+      body = document.createElement('div');
+      body.className = 'synopsis-body';
+      const fragment = document.createDocumentFragment();
+      let node = heading.nextSibling;
+      while (node) {
+        const next = node.nextSibling;
+        fragment.appendChild(node);
+        node = next;
+      }
+      body.appendChild(fragment);
+      container.appendChild(body);
+    }
+
+    if (body.querySelector('.synopsis-content')) return;
+
+    const content = document.createElement('div');
+    content.className = 'synopsis-content';
+    const fragment = document.createDocumentFragment();
+    while (body.firstChild) {
+      fragment.appendChild(body.firstChild);
+    }
+    content.appendChild(fragment);
+    body.appendChild(content);
+
+    requestAnimationFrame(() => {
+      const collapsedHeight = Number(container.dataset.maxHeight) || DEFAULT_HEIGHT;
+      const fullHeight = content.scrollHeight;
+      if (fullHeight <= collapsedHeight + 8) {
+        content.style.maxHeight = 'none';
+        return;
+      }
+
+      container.classList.add('is-collapsible');
+      content.style.maxHeight = `${collapsedHeight}px`;
+
+      const toggle = document.createElement('button');
+      toggle.type = 'button';
+      toggle.className = 'synopsis-toggle';
+      toggle.textContent = 'See more';
+      toggle.setAttribute('aria-expanded', 'false');
+      container.appendChild(toggle);
+
+      const instance = {
+        container,
+        content,
+        toggle,
+        collapsed: collapsedHeight,
+        expanded: fullHeight,
+        applyState(expanded) {
+          this.content.style.maxHeight = expanded
+            ? `${this.expanded}px`
+            : `${this.collapsed}px`;
+        },
+        updateExpanded() {
+          this.expanded = this.content.scrollHeight;
+          this.applyState(this.container.classList.contains('is-expanded'));
+        },
+      };
+
+      toggle.addEventListener('click', () => {
+        const expanded = container.classList.toggle('is-expanded');
+        toggle.setAttribute('aria-expanded', String(expanded));
+        toggle.textContent = expanded ? 'See less' : 'See more';
+        instance.applyState(expanded);
+      });
+
+      instances.push(instance);
+      if (instances.length === 1) {
+        window.addEventListener('resize', scheduleResize);
+      }
+    });
+  });
+}
+
+initSynopsisPreviews();

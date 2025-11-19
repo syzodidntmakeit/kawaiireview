@@ -1,122 +1,141 @@
 # KawaiiReview
 
-Dark pastel, no-bullshit archive for the anime seasons and rap albums I actually care about. This repo is both the front-end (static HTML/CSS/JS) and the tooling (Node scripts that scaffold metadata, download covers, and build finished review pages).
+KawaiiReview is a stubbornly editorial archive for the anime seasons and rap albums I actually think about. It’s a pure-static site (HTML/CSS/JS) backed by a handful of Node scripts that fetch metadata, download cover art, scaffold Markdown, and build finished review pages.
 
-## Highlights
+---
 
-- **Cinematic post layout** – Every review page shares a framed hero: glowing cover, studio/artist pills, runtime chips, and a rounded SVG score ring that’s driven by CSS custom properties (no inline hacks).
-- **Data-driven carousels** – `index.html` and the archive pages read from `data/anime.json` and `data/albums.json`. Inline JSON fallbacks keep everything working under `file://`.
-- **Markdown-first authoring** – Reviews live in `blog.md` files with YAML frontmatter. The build script merges that content into HTML templates, so there’s zero copy/paste HTML work.
-- **Smart scaffolding** – The CLI queries AniList + MusicBrainz (with Cover Art Archive) for metadata/cover art and falls back to Jikan, TheAudioDB, or iTunes when needed.
+## Quick Start
 
-## Repo Layout
-
-## Prerequisites
+Requirements:
 
 - Node.js 18+
-- git (optional but recommended)
-- Internet access for scaffolding (AniList + MusicBrainz + Cover Art Archive calls)
+- Git (optional, but useful for keeping history in sync)
+- Internet access when scaffolding new reviews (the CLI talks to AniList, Jikan, MusicBrainz, Cover Art Archive, TheAudioDB, and iTunes)
 
-## Repo Layout
-
-| Path | Purpose |
-| --- | --- |
-| `index.html` | Landing page with anime + album carousels, inline JSON fallbacks, and CTA/footer. |
-| `anime/` / `album/` | One folder per review (`<slug>/blog.md`, `<slug>.html`, `cover.*`). Each medium also has `all-*.html` archive pages. |
-| `assets/css/style.css` | Design tokens, layout rules (cards, hero, chips, score ring, typography). |
-| `assets/js/main.js` | Carousel population + scroll controls, “back to top” button, and score-ring CSS variable sync. |
-| `assets/js/archive.js` | Mirrors the carousel loader for archive grids. |
-| `templates/` | HTML templates for anime/album posts. Build script swaps in Markdown + metadata. |
-| `data/anime.json`, `data/albums.json` | Canonical lists of entries used by the homepage + archives. Updated automatically by the scripts. |
-| `scripts/` | `kawaii.mjs` (command runner), `new_review.mjs` (scaffold), `build_entry.mjs` (render) + supporting modules. |
-
-## CLI Commands (Node 18+)
-
-Use the all-in-one helper (Node 18+, Internet access required for metadata):
+Clone the repo, install dependencies if you plan to lint/format (not required for the core workflow), and run commands from the repo root.
 
 ```bash
-# Scaffold
-node scripts/kawaii.mjs new anime "Paranoia Agent" --year 2004
-node scripts/kawaii.mjs new album "Scaring the Hoes" --artist "JPEGMAFIA"
-
-# Build a single entry
-node scripts/kawaii.mjs build anime paranoia-agent
-
-# Build everything
-node scripts/kawaii.mjs build-all        # anime + album
-node scripts/kawaii.mjs build-all anime  # only anime
-
-# List available slugs
-node scripts/kawaii.mjs list
-node scripts/kawaii.mjs list album
-
-# Dry run (no files written)
-node scripts/kawaii.mjs new album "Madvillainy" --artist "Madvillain" --dry-run
-
-# Force overwrite an existing slug
-node scripts/kawaii.mjs new anime "Neon Genesis Evangelion" --year 1995 --overwrite
+git clone https://github.com/<you>/kawaiireview.git
+cd kawaiireview
 ```
 
-Under the hood:
+---
 
-1. **Anime metadata** comes from AniList’s GraphQL API (cover art, studios, air dates, synopsis). If AniList can’t find a match, the CLI falls back to Jikan.
-2. **Album metadata** comes from MusicBrainz + the Cover Art Archive (canonical release info, tags, artwork). When that fails, TheAudioDB and iTunes serve as fallbacks.
-3. The CLI prompts for optional score + score-caption, downloads cover art, writes `blog.md`, updates `data/*.json`, and refreshes the inline JSON used on `index.html` and the archive pages. Add `--dry-run` to preview metadata without touching the filesystem, or `--overwrite` to rebuild an existing slug from scratch.
+## CLI Commands
 
-The legacy wrappers (`./new-anime`, `./new-album`, etc.) still work, but `scripts/kawaii.mjs` keeps everything in one place.
-
-### Writing & tuning metadata
-
-Open the generated `blog.md`, overwrite the review body, and tweak the frontmatter. Useful keys:
-
-| Field | Description |
-| --- | --- |
-| `title`, `studio` / `artist`, `year`, `genres` | Self-explanatory. Comma-separated values become chips. |
-| `runtime` | Freeform label that becomes a runtime chip (“1 Season × 26 Episodes”, “57 mins”). |
-| `runtime_detail` | Sentence under the chips (“Aired Oct 1995 – Mar 1996”, “Released Nov 2021 · Republic”). |
-| `score` | Number 0–10. Drives the SVG score ring (converted to a 0–1 ratio). Accepts strings like `TBD` if you don’t want a score yet. |
-| `score_caption` | One-liner that sits under the score (“Blunted genius in 46 minutes.”). |
-| `synopsis` | Long-form string shown in the synopsis column (Markdown paragraphs are converted to `<p>` blocks). |
-| `seasons`, `episodes`, `length_minutes` | Optional numeric helpers; the CLI auto-fills them when available and the build script uses them to format runtimes. |
-
-For anime you can also keep `seasons` / `episodes`; for albums you can store `length_minutes`. The build script prefers explicit `runtime` text, but will fall back to these numbers if needed.
-
-### Building templates
-
-`node scripts/kawaii.mjs build <anime|album> <slug>` calls `scripts/build_entry.mjs`, which parses `blog.md`, merges it with the matching template, writes `<slug>.html`, updates `data/*.json`, and refreshes the inline JSON fallbacks. `build-all` simply loops over every slug in `anime/` and `album/`.
-
-## Styling & Components
-
-- **Hero card** – `.post-hero` wraps the cover, metadata chips, runtime detail, and score block inside a frosted gradient panel. `.post-cover-anime` enforces a 9:16 crop; `.post-cover-album` keeps albums square.
-- **Chips** – The build script converts comma-delimited strings into `<span class="meta-chip">…</span>` / `<span class="genre-chip">…</span>`. `.meta-chip-runtime` highlights runtimes in mint green, `.genre-chip` handles general tags.
-- **Score ring** – `.post-score` exposes a `data-score` attribute. `assets/js/main.js` reads it and sets the CSS custom property `--score-value`, which powers the rounded SVG arc that wraps the numeric score.
-- **Cards & grids** – The homepage carousels and archive grids use the same card component (`assets/css/style.css` around line 140). Keep cover aspect ratios consistent (`cover-portrait` for anime cards, `cover-square` for albums).
-
-## Data Flow
-
-1. `node scripts/kawaii.mjs new …` queries AniList/MusicBrainz for metadata, downloads cover art, writes `blog.md`, and updates `data/*.json` plus the inline `<script id="*-data-inline">` fallbacks embedded in `index.html` and the archive pages.
-2. `node scripts/kawaii.mjs build …` parses `blog.md`, merges it with the correct template, writes `<slug>.html`, updates the JSON entries with the generated link, and refreshes the inline fallback data again.
-3. `assets/js/main.js` fetches `data/*.json` when possible. If you’re opening the site via `file://`, network calls fail gracefully and the inline JSON (populated in step 1/2) acts as the source of truth.
-4. Cards and archive grids read the same JSON entries, so once a generated HTML file exists they pick up the cover + link immediately.
-
-For a “real” preview, run a static server at the repo root:
-
-```bash
-python -m http.server
-# or
-npx serve
-```
-
-## Scripts quick reference
+All automation runs through `tools/cli/kawaii.mjs`. Every command prints friendly errors if the input is missing or malformed.
 
 | Command | Description |
 | --- | --- |
-| `node scripts/kawaii.mjs new anime "<title>" [--year 2020] [--dry-run] [--overwrite]` | Scaffold an anime review via AniList (Jikan fallback). Dry run previews metadata; overwrite replaces an existing slug. |
-| `node scripts/kawaii.mjs new album "<title>" --artist "Name"` | Scaffold an album via MusicBrainz (Cover Art Archive), fallback to TheAudioDB/iTunes. Same `--dry-run`/`--overwrite` options apply. |
-| `node scripts/kawaii.mjs build <anime|album> <slug>` | Regenerate a single review page. |
-| `node scripts/kawaii.mjs build-all [anime|album|all]` | Rebuild every generated page in one go. |
-| `node scripts/kawaii.mjs list [anime|album|all]` | Print the slugs currently stored under `anime/` and/or `album/`. |
-| `node scripts/new_review.mjs` | Legacy scaffold script (still interactive). |
-| `node scripts/build_entry.mjs <kind> <slug>` | Underlying build command used by the CLI/CI. |
+| `node tools/cli/kawaii.mjs new anime "<title>" [--year YYYY] [--dry-run] [--overwrite]` | Scaffold an anime review. Fetches metadata from AniList (falls back to Jikan), grabs cover art, and writes `anime/<slug>/blog.md` + `cover.*`. |
+| `node tools/cli/kawaii.mjs new album "<title>" --artist "<name>" [--dry-run] [--overwrite]` | Scaffold an album review via MusicBrainz + Cover Art Archive (fallbacks: TheAudioDB/iTunes). |
+| `node tools/cli/kawaii.mjs build <anime|album> <slug>` | Merge `blog.md` with the appropriate template and emit `<slug>.html`. |
+| `node tools/cli/kawaii.mjs build-all [anime|album|all]` | Rebuild every entry for the selected medium (or both). |
+| `node tools/cli/kawaii.mjs list [anime|album|all]` | Print every review grouped under “Anime” and “Albums”, including slug and score (when present). |
+| `node tools/cli/kawaii.mjs delete <anime|album> <slug>` | Remove a review folder, delete its HTML/blog/cover, prune the relevant JSON entry, and refresh the inline fallbacks. Prompts for confirmation (`Are you sure? (y|N)`). |
 
-Deploy by copying the repo (or at least `index.html`, `anime/`, `album/`, `assets/`, `data/`, and `LICENSE`) to any static host (GitHub Pages, Netlify, etc.). Everything else—covers, metadata, inline JSON—travels with the repo. Until then: scaffold, rant in Markdown, build, and push. Fast, honest, biased—exactly how these opinions should live.
+Legacy helpers (`new-anime`, `new-album`, etc.) still exist, but the consolidated CLI above is the happy path.
+
+---
+
+## Creating a Review (Step by Step)
+
+1. **Scaffold metadata**
+   ```bash
+   node tools/cli/kawaii.mjs new anime "Neon Genesis Evangelion" --year 1995
+   # or
+   node tools/cli/kawaii.mjs new album "Scaring the Hoes" --artist "JPEGMAFIA"
+   ```
+   - The script prints multiple search matches if needed and lets you pick one.
+   - `--dry-run` shows metadata without touching the filesystem.
+   - `--overwrite` keeps the existing slug but replaces its files.
+
+2. **Edit `blog.md`**
+   - Each scaffold lives in `anime/<slug>/blog.md` or `album/<slug>/blog.md`.
+   - The frontmatter contains every chip/metadata field (title, studio/artist, runtime, synopsis, score, etc.).
+   - Replace the placeholder “## Review” section with your actual write-up. Markdown is converted to HTML during the build step.
+
+3. **Generate the HTML**
+   ```bash
+   node tools/cli/kawaii.mjs build anime neon-genesis-evangelion
+   ```
+   - This writes `<slug>.html`, downloads cover art if it doesn’t exist, and updates `data/anime.json` / `data/albums.json` plus the inline `<script>` fallbacks used when browsing from `file://`.
+   - `build-all` is handy after a big editing session.
+
+4. **Preview locally**
+   - Open `index.html` directly in a browser or run a static server:
+     ```bash
+     python -m http.server
+     # or
+     npx serve
+     ```
+   - Every review page is plain HTML, so GitHub Pages or any static host will Just Work. Deploy by committing and pushing, or by syncing the generated files to your hosting provider.
+
+5. **Clean up or remove entries (optional)**
+   - `node tools/cli/kawaii.mjs list` shows your catalog grouped by medium.
+   - `node tools/cli/kawaii.mjs delete album lp` removes the `album/lp/` folder, its generated HTML, and the associated JSON records after a confirmation prompt.
+
+---
+
+## How the Code Works
+
+### 1. Tooling pipeline
+
+- `tools/cli/kawaii.mjs` – the command dispatcher (new/build/build-all/list/delete). Hands off work to the scripts below and keeps environment flags (`--dry-run`, `--overwrite`) in sync.
+- `tools/cli/new_review.mjs` – interactive scaffolder. Talks to AniList/MusicBrainz + fallbacks, downloads cover art, writes `blog.md`, and updates `data/*.json` + inline `<script>` fallbacks embedded in the homepage and archive pages.
+- `tools/cli/build_entry.mjs` – renders a single review. Reads `blog.md` frontmatter + Markdown, merges it with `templates/anime.html` or `templates/album.html`, writes `<slug>.html`, and refreshes the corresponding JSON entries (so cards/archives pick up the link + cover path).
+
+### 2. Data flow
+
+1. `new` command scaffold ➝ `blog.md`, `cover`, JSON entry.
+2. `build` command ➝ `<slug>.html` and updated JSON link.
+3. Front-end JS (`assets/js/main.js`) tries to `fetch("data/*.json")`. If the fetch fails (e.g., due to `file://`), it falls back to the inline `<script id="*-data-inline">` blobs that `new`/`build` keep updated.
+4. Homepage carousels and archive grids read the same JSON, so any built review immediately surfaces everywhere without manual editing.
+
+### 3. Front-end structure
+
+- `index.html` – hero + carousels + inline data fallbacks.
+- `anime/all-anime.html` / `album/all-album.html` – archive grids populated via the same JS loader.
+- `templates/anime.html` / `templates/album.html` – the hero layout for individual reviews (cover on the left, score + metadata on the right, synopsis/review in collapsible sections).
+- `assets/css/style.css` – tokens, layout, components (cards, chips, score ring, synopsis animation, responsive behaviors).
+- `assets/js/main.js` – carousel init, “back to top” button, score ring CSS var sync, synopsis “see more” animation, nav toggle behavior.
+
+---
+
+## Project Layout
+
+| Path | Purpose |
+| --- | --- |
+| `index.html` | Landing page with anime + album carousels and inline JSON fallbacks. |
+| `anime/` / `album/` | One folder per review (`<slug>/blog.md`, `<slug>.html`, `cover.*`). Includes `all-*.html` archive pages. |
+| `assets/css/style.css` | Global design (tokens, hero layout, cards, chips, synopsis animation, responsive tweaks). |
+| `assets/js/main.js` | Carousel population, scroll controls, score ring logic, synopsis animation, nav toggle. |
+| `data/anime.json` / `data/albums.json` | Canonical lists that feed the homepage + archives. Automatically updated by the scripts. |
+| `templates/` | HTML templates for anime/album pages. |
+| `tools/cli/` | CLI entry + build/scaffold scripts (`kawaii.mjs`, `new_review.mjs`, `build_entry.mjs`). |
+| `assets/js/archive.js` | Archive grid population logic (mirrors the homepage loader). |
+
+---
+
+## Styling & Components
+
+- **Hero card** – `.post-hero` wraps the cover, details, and score ring. On desktop the cover sits left, score under the metadata. On mobile the score floats beneath the cover and loses the background chrome for clarity.
+- **Chips** – Studios/artists, runtime labels, and genres all use pill components with gradients defined near the `meta-chip` / `genre-chip` classes.
+- **Score ring** – CSS variables drive the animated SVG arc (clamped to 0–10). The number is just the displayed score; captions were intentionally removed to keep the hero clean.
+- **Synopsis** – Default view shows the first ~260px of text with a gradient fade. Clicking “See more” animates the same content open; clicking “See less” collapses it again.
+- **Cards** – Carousels/archives share a single card style. Keep covers sized 220×? to avoid layout shifts.
+
+---
+
+## Future Plans
+
+- **Search/filter UI** – Live filtering across anime + albums, with chips for studios/genres to fast-filter on the client.
+- **RSS/JSON feed** – Auto-export the latest reviews (title, score, summary) for syndication.
+- **Accessibility polish** – Better focus states, reduced-motion variants for the synopsis animation, and more descriptive aria labels on carousel controls.
+- **Local preview server** – Simple dev command that watches `blog.md` and auto-rebuilds/reloads review pages.
+- **CLI test harness** – Snapshot tests for the scaffold/build/delete commands so regressions are caught before shipping.
+- **Optional image optimizer** – Script step to resize/compress covers for faster mobile loads.
+- **CI hooks** – GitHub Actions workflow to run `build-all` + a static HTML linter before publishing to Pages.
+- **Custom scrollbar** – Subtle themed scrollbars on desktop (respecting `prefers-reduced-motion`) so the UI looks consistent even in long review sections.
+
+If you want to extend the project, start with the scripts—they’re well-contained and make it easy to plug in new metadata sources or change how the templates are rendered. Happy ranting.

@@ -7,11 +7,23 @@
   <link rel="stylesheet" href="../../assets/css/style.css">
 </head>
 <body>
-  <header>
+  <nav class="site-nav" aria-label="Primary navigation">
     <div class="container">
-      <a class="back" href="../../index.html">← Back to homepage</a>
+      <div class="nav-bar">
+        <a class="brand" href="../../index.html">KawaiiReview</a>
+        <button id="nav-toggle" class="nav-toggle" type="button" aria-label="Toggle navigation" aria-expanded="false" aria-controls="primary-nav">
+          <span class="nav-toggle-bar"></span>
+          <span class="nav-toggle-bar"></span>
+          <span class="nav-toggle-bar"></span>
+        </button>
+        <div class="nav-links" id="primary-nav">
+          <a href="../../index.html#anime">Anime</a>
+          <a href="../../index.html#albums">Albums</a>
+          <a href="../../contact.html">Contact</a>
+        </div>
+      </div>
     </div>
-  </header>
+  </nav>
   <main class="post-container">
     <section class="post-top post-hero">
       <div class="post-cover-wrap">
@@ -24,16 +36,14 @@
           <span class="meta-chip meta-chip-runtime">57 mins</span>
         </div>
         <div class="post-runtime">Released Nov 2021 · Republic (reluctantly)</div>
-        <div class="post-score" data-score="0.86" aria-label="Score 8.6 out of 10">
-          <span class="score-label">Score</span>
-          <div class="score-ring">
-            <svg class="score-ring-visual" viewBox="0 0 120 120" role="presentation" aria-hidden="true">
-              <circle class="score-ring-track" cx="60" cy="60" r="52"></circle>
-              <circle class="score-ring-progress" cx="60" cy="60" r="52"></circle>
-            </svg>
-            <span class="score-value">8.6</span>
-          </div>
-          <p class="score-caption">Peggy's offline tantrum, we stan.</p>
+      </div>
+      <div class="post-score" data-score="0.86" aria-label="Score 8.6 out of 10">
+        <div class="score-ring">
+          <svg class="score-ring-visual" viewBox="0 0 120 120" role="presentation" aria-hidden="true">
+            <circle class="score-ring-track" cx="60" cy="60" r="52"></circle>
+            <circle class="score-ring-progress" cx="60" cy="60" r="52"></circle>
+          </svg>
+          <span class="score-value">8.6</span>
         </div>
       </div>
     </section>
@@ -47,11 +57,7 @@
   <footer>
     <div class="container">
       <p>© 2025 kawaii-san.org. All wrongs reserved.</p>
-      <p>
-        <a class="license-link" href="https://opensource.org/licenses/MIT" target="_blank" rel="noreferrer">
-          Licensed under the MIT License. Don't be a bitch.
-        </a>
-      </p>
+      <p>Licensed under the <a href="../../LICENSE" download>MIT License</a>. Don't be a bitch.</p>
     </div>
   </footer>
   <button id="back-to-top" aria-label="Back to top">↑ Top</button>

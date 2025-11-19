@@ -5,9 +5,9 @@ if [ -z "$slug" ]; then
   exit 1
 fi
 if [ -f "album/$slug/blog.md" ]; then
-  node "$(dirname "$0")/scripts/build_entry.mjs" album "$slug"
+  node "$(dirname "$0")/tools/cli/build_entry.mjs" album "$slug"
 elif [ -f "anime/$slug/blog.md" ]; then
-  node "$(dirname "$0")/scripts/build_entry.mjs" anime "$slug"
+  node "$(dirname "$0")/tools/cli/build_entry.mjs" anime "$slug"
 else
   echo "Could not find blog.md for slug '$slug'."
   exit 1

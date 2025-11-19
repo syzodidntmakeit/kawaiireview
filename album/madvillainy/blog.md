@@ -9,7 +9,6 @@ created: "2025-11-15T09:31:15.549Z"
 type: "album"
 eyebrow: "Villainous loop science"
 runtime_detail: "Released Mar 2004 · Stones Throw"
-score_caption: "Blunted genius in 46 minutes."
 synopsis: "Madvillainy is the only studio album by hip-hop duo Madvillain, consisting of MF Doom and producer Madlib, released March 23, 2004, on Stones Throw Records. The album was recorded between 2002 and 2004, with Madlib creating most instrumentals during a trip to Brazil in his hotel room using minimal equipment: a Boss SP-303 sampler, turntable, and tape deck. Fourteen months before release, an unfinished demo was stolen and leaked online, causing the frustrated duo to stop working on the album temporarily and pursue other solo projects. "
 length_minutes: 39.04
 runtime: "48 mins"

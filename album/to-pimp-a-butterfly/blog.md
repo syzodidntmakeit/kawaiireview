@@ -10,7 +10,6 @@ type: "album"
 eyebrow: "Free-jazz rap sermon"
 runtime: "1 hr 19 mins"
 runtime_detail: "Released Mar 2015 · Top Dawg / Aftermath"
-score_caption: "Conscious brilliance, slightly over-eager."
 synopsis: "Auto-imported via iTunes Search API for To Pimp a Butterfly. Replace with your synopsis."
 score: 9.4
 ---
