@@ -1,6 +1,0 @@
-#!/usr/bin/env bash
-if [ -z "$1" ]; then
-  echo "Usage: ./build-anime <slug>"
-  exit 1
-fi
-node "$(dirname "$0")/tools/cli/build_entry.mjs" anime "$1"

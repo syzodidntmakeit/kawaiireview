@@ -1,0 +1,37 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+
+const entries = await getCollection('album');
+const sorted = entries.sort((a, b) => new Date(b.data.created || 0).valueOf() - new Date(a.data.created || 0).valueOf());
+---
+
+<BaseLayout title="All Albums">
+  <main class="container">
+    <section>
+      <div class="section-head">
+        <div>
+          <h2 class="section-title">All Albums</h2>
+          <span class="section-meta">{entries.length} Reviews</span>
+        </div>
+      </div>
+      <div class="card-grid">
+        {sorted.map(entry => (
+          <article class="card">
+            <a href={`/album/${entry.slug}`} class={`cover cover-square ${!entry.data.cover ? 'placeholder' : ''}`}>
+              {entry.data.cover ? (
+                <img src={entry.data.cover.src} alt={`${entry.data.title} cover`} class="cover-media" />
+              ) : (
+                <span>{entry.data.title}</span>
+              )}
+            </a>
+            <div class="title-line">
+              <h3>{entry.data.title}</h3>
+            </div>
+            <div class="meta">{entry.data.artist || 'Unknown'}</div>
+          </article>
+        ))}
+      </div>
+    </section>
+  </main>
+</BaseLayout>

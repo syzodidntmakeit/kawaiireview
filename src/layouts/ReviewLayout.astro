@@ -1,0 +1,107 @@
+---
+import BaseLayout from './BaseLayout.astro';
+import type { CollectionEntry } from 'astro:content';
+
+interface Props {
+  entry: CollectionEntry<'anime'> | CollectionEntry<'album'>;
+}
+
+const { entry } = Astro.props;
+const { data } = entry;
+const isAnime = entry.collection === 'anime';
+
+const title = data.title;
+const cover = data.cover;
+const score = data.score ? Number(data.score) : null;
+const scoreText = score !== null ? score.toFixed(1) : 'TBD';
+const scoreRatio = score !== null ? Math.min(Math.max(score / 10, 0), 1).toFixed(2) : '0';
+const scoreAria = score !== null ? `Score ${scoreText} out of 10` : 'Unscored review';
+
+// Meta chips logic
+const metaLabel = isAnime ? 'Studios' : 'Artists';
+const metaValue = isAnime ? (data as any).studio : (data as any).artist;
+const metaTokens = metaValue ? metaValue.split(/[,•|]/).map((t: string) => t.trim()).filter(Boolean) : ['Unknown'];
+
+// Runtime logic
+let runtimeDisplay = data.runtime;
+if (!runtimeDisplay) {
+  if (isAnime) {
+    const seasons = (data as any).seasons;
+    const episodes = (data as any).episodes;
+    const sLabel = seasons ? `${seasons} Season${seasons === 1 ? '' : 's'}` : '';
+    const eLabel = episodes ? `${episodes} Episode${episodes === 1 ? '' : 's'}` : '';
+    runtimeDisplay = sLabel && eLabel ? `${sLabel} × ${eLabel}` : (sLabel || eLabel || '');
+  } else {
+    const mins = (data as any).length_minutes;
+    if (mins) {
+      const total = Math.round(mins);
+      if (total < 60) runtimeDisplay = `${total} mins`;
+      else {
+        const hrs = Math.floor(total / 60);
+        const m = total % 60;
+        runtimeDisplay = `${hrs} hr${hrs === 1 ? '' : 's'} ${m > 0 ? `${String(m).padStart(2, '0')} mins` : ''}`;
+      }
+    }
+  }
+}
+
+const genreTokens = data.genres ? data.genres.split(/[,•|]/).map((t: string) => t.trim()).filter(Boolean) : ['Uncategorized'];
+---
+
+<BaseLayout title={`${title} — ${isAnime ? 'Anime' : 'Album'} Review`}>
+  <main class="post-container">
+    <section class="post-top post-hero">
+      <div class="post-cover-wrap">
+        {cover ? (
+          <img class={`post-cover ${isAnime ? 'post-cover-anime' : 'post-cover-album'}`} src={cover.src} alt={`${title} cover`} />
+        ) : (
+          <div class={`post-cover ${isAnime ? 'post-cover-anime' : 'post-cover-album'} placeholder`}></div>
+        )}
+      </div>
+      <div class="post-details">
+        <h1 class="post-title">{title}</h1>
+        <div class="post-meta post-meta-chips" aria-label={metaLabel}>
+          {metaTokens.map((token: string) => (
+            <span class="meta-chip">{token}</span>
+          ))}
+          {runtimeDisplay && <span class="meta-chip meta-chip-runtime">{runtimeDisplay}</span>}
+        </div>
+        <div class="post-genres post-genre-chips" aria-label="Genres">
+          {genreTokens.map((token: string) => (
+            <span class="genre-chip">{token}</span>
+          ))}
+        </div>
+        <div class="post-runtime">{data.runtime_detail}</div>
+      </div>
+      <div class="post-score" data-score={scoreRatio} aria-label={scoreAria}>
+        <div class="score-ring">
+          <svg class="score-ring-visual" viewBox="0 0 120 120" role="presentation" aria-hidden="true">
+            <circle class="score-ring-track" cx="60" cy="60" r="52"></circle>
+            <circle class="score-ring-progress" cx="60" cy="60" r="52" style={`--score-ratio: ${scoreRatio}`}></circle>
+          </svg>
+          <span class="score-value">{scoreText}</span>
+        </div>
+      </div>
+    </section>
+    <section class="post-body">
+      {data.synopsis && (
+        <div class="synopsis">
+          <h2>Synopsis</h2>
+          <p>{data.synopsis}</p>
+        </div>
+      )}
+      <div class="review">
+        <h2>Review</h2>
+        <slot />
+      </div>
+    </section>
+  </main>
+
+  <style>
+    /* Add inline style for score ring progress since we can't easily pass CSS vars to SVG attributes in standard CSS without a wrapper */
+    .score-ring-progress {
+      stroke-dasharray: 327; /* 2 * pi * 52 */
+      stroke-dashoffset: calc(327 * (1 - var(--score-ratio)));
+    }
+  </style>
+</BaseLayout>

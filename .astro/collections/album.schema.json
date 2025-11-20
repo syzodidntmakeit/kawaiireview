@@ -1,0 +1,74 @@
+{
+  "$ref": "#/definitions/album",
+  "definitions": {
+    "album": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string"
+        },
+        "artist": {
+          "type": "string"
+        },
+        "year": {
+          "type": [
+            "number",
+            "string"
+          ]
+        },
+        "genres": {
+          "type": "string"
+        },
+        "cover": {
+          "type": "string"
+        },
+        "source_url": {
+          "type": "string"
+        },
+        "created": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string",
+          "const": "album"
+        },
+        "synopsis": {
+          "type": "string"
+        },
+        "length_minutes": {
+          "type": [
+            "number",
+            "string"
+          ]
+        },
+        "runtime": {
+          "type": "string"
+        },
+        "score": {
+          "anyOf": [
+            {
+              "type": [
+                "number",
+                "string"
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "runtime_detail": {
+          "type": "string"
+        },
+        "$schema": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "title"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}

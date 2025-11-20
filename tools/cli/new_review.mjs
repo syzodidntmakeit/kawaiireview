@@ -7,19 +7,8 @@ import { stdin as input, stdout as output } from 'process';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..', '..');
-const DATA_DIR = path.join(ROOT, 'data');
-const ANIME_DIR = path.join(ROOT, 'anime');
-const ALBUM_DIR = path.join(ROOT, 'album');
-const INLINE_TARGETS = {
-  anime: [
-    { file: path.join(ROOT, 'index.html'), id: 'anime-data-inline' },
-    { file: path.join(ROOT, 'anime', 'all-anime.html'), id: 'anime-archive-data' },
-  ],
-  album: [
-    { file: path.join(ROOT, 'index.html'), id: 'album-data-inline' },
-    { file: path.join(ROOT, 'album', 'all-album.html'), id: 'album-archive-data' },
-  ],
-};
+const ANIME_DIR = path.join(ROOT, 'src', 'content', 'anime');
+const ALBUM_DIR = path.join(ROOT, 'src', 'content', 'album');
 
 const rl = readline.createInterface({ input, output });
 const ask = async (prompt) => (await rl.question(prompt)).trim();
@@ -461,40 +450,6 @@ function buildFrontmatter({
   return lines.join('\n');
 }
 
-async function updateData(kind, entry) {
-  await ensureDir(DATA_DIR);
-  const dataPath = path.join(DATA_DIR, kind === 'anime' ? 'anime.json' : 'albums.json');
-  let items = [];
-  try {
-    const raw = await fs.readFile(dataPath, 'utf8');
-    items = JSON.parse(raw);
-  } catch {
-    items = [];
-  }
-  items = items.filter((item) => item.slug !== entry.slug);
-  items.push(entry);
-  items.sort((a, b) => new Date(a.created) - new Date(b.created));
-  const jsonText = `${JSON.stringify(items, null, 2)}\n`;
-  await fs.writeFile(dataPath, jsonText, 'utf8');
-  await updateInlineScripts(kind, jsonText);
-}
-
-async function updateInlineScripts(kind, jsonText) {
-  const targets = INLINE_TARGETS[kind] || [];
-  await Promise.all(
-    targets.map(async ({ file, id }) => {
-      try {
-        const html = await fs.readFile(file, 'utf8');
-        const pattern = new RegExp(`(<script id="${id}"[^>]*>)([\\s\\S]*?)(</script>)`);
-        if (!pattern.test(html)) return;
-        const updated = html.replace(pattern, `$1\n${jsonText.trim()}\n  $3`);
-        await fs.writeFile(file, updated, 'utf8');
-      } catch {
-        // ignore missing file
-      }
-    })
-  );
-}
 
 async function createReview(kind, meta) {
   const baseDir = kind === 'anime' ? ANIME_DIR : ALBUM_DIR;
@@ -570,30 +525,8 @@ async function createReview(kind, meta) {
     score: meta.score,
     runtimeDetail: meta.runtimeDetail,
   });
-  await fs.writeFile(path.join(folder, 'blog.md'), markdown, 'utf8');
+  await fs.writeFile(path.join(folder, 'index.md'), markdown, 'utf8');
 
-  const coverRel = path.relative(ROOT, coverPath).replace(/\\/g, '/');
-  const dataEntry =
-    kind === 'anime'
-      ? {
-          slug,
-          title: meta.title,
-          year: meta.year,
-          studio: meta.owner,
-          cover: coverRel,
-          link: null,
-          created: new Date().toISOString(),
-        }
-      : {
-          slug,
-          title: meta.title,
-          year: meta.year,
-          artist: meta.owner,
-          cover: coverRel,
-          link: null,
-          created: new Date().toISOString(),
-        };
-  await updateData(kind, dataEntry);
 
   console.log(`Created ${kind} review scaffold at ${path.relative(ROOT, folder)}`);
   console.log('- Markdown: blog.md');
@@ -623,34 +556,48 @@ function parseArgs(argv) {
 
 async function run() {
   const argv = parseArgs(process.argv.slice(2));
-  const [command, ...rest] = argv._;
+  let [command, ...rest] = argv._;
+
   if (!['anime', 'album'].includes(command || '')) {
-    console.error('Usage: ./new-anime "Title" [--year 2020] or ./new-album "Title" --artist "Artist" --year 2020');
-    process.exit(1);
+    const answer = await ask('Review type (anime/album): ');
+    command = answer.toLowerCase().trim();
+    if (!['anime', 'album'].includes(command)) {
+      console.error('Invalid type. Must be "anime" or "album".');
+      process.exit(1);
+    }
   }
-  if (!rest.length) {
-    console.error('Title is required (wrap it in quotes).');
-    process.exit(1);
+
+  let title = rest.join(' ');
+  if (!title) {
+    title = await ask('Title: ');
+    if (!title) {
+      console.error('Title is required.');
+      process.exit(1);
+    }
   }
-  const title = rest.join(' ');
+
   let year = argv.year ? Number(argv.year) : undefined;
   if (!Number.isFinite(year)) {
     const answer = await ask('Release year (leave blank to skip): ');
     year = answer ? Number(answer) : undefined;
   }
+
   let artist = argv.artist;
   if (command === 'album' && !artist) {
     const artistAnswer = await ask('Artist name (optional): ');
     artist = artistAnswer || undefined;
   }
+
   try {
     let candidates =
       command === 'anime'
         ? await fetchAnimeCandidates(title, year)
         : await fetchAlbumCandidates(title, year, artist);
+
     if (!candidates.length) {
       throw new Error(`No ${command} results for "${title}".`);
     }
+
     const meta = await chooseCandidate(command, candidates);
     await collectRuntime(command, meta);
     await collectScore(meta);
@@ -663,7 +610,11 @@ async function run() {
   }
 }
 
-run();
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+  run();
+}
+
+export { run };
 async function fetchAnimeFromAniList(title, year) {
   const query = `
     query ($search: String, $year: Int) {

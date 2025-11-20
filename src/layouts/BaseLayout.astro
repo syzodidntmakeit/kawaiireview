@@ -1,0 +1,55 @@
+---
+interface Props {
+  title: string;
+  description?: string;
+}
+
+import { ViewTransitions } from 'astro:transitions';
+const { title, description } = Astro.props;
+---
+
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{title} | KawaiiReview</title>
+  {description && <meta name="description" content={description} />}
+  <link rel="stylesheet" href="/assets/css/style.css">
+  <ViewTransitions />
+</head>
+<body>
+  <a href="#main" class="skip-link">Skip to main content</a>
+  <nav class="site-nav" aria-label="Primary navigation">
+    <div class="container">
+      <div class="nav-bar">
+        <a class="brand" href="/">KawaiiReview</a>
+        <button id="nav-toggle" class="nav-toggle" type="button" aria-label="Toggle navigation" aria-expanded="false" aria-controls="primary-nav">
+          <span class="nav-toggle-bar"></span>
+          <span class="nav-toggle-bar"></span>
+          <span class="nav-toggle-bar"></span>
+        </button>
+        <div class="nav-links" id="primary-nav">
+          <a href="/#anime">Anime</a>
+          <a href="/#albums">Albums</a>
+          <a href="/contact">Contact</a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <div id="main">
+    <slot />
+  </div>
+
+  <footer>
+    <div class="container">
+      <p>© 2025 kawaii-san.org. All wrongs reserved.</p>
+      <p>Licensed under the <a href="/LICENSE" download>MIT License</a>. Don't be a bitch.</p>
+    </div>
+  </footer>
+
+  <button id="back-to-top" aria-label="Back to top">↑ Top</button>
+  <script src="/assets/js/main.js" is:inline></script>
+</body>
+</html>

@@ -4,7 +4,13 @@
   "description": "Dark pastel, no-bullshit archive of anime seasons and rap albums I actually care about. Built as a static prototype to visualize the final site before wiring up content generation or automation.",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro",
+    "lint": "eslint . --ext .js,.mjs,.astro",
+    "format": "prettier --write \"**/*.{js,mjs,astro,css,md,json}\""
   },
   "repository": {
     "type": "git",
@@ -17,5 +23,14 @@
   "bugs": {
     "url": "https://github.com/syzodidntmakeit/kawaiireview/issues"
   },
-  "homepage": "https://github.com/syzodidntmakeit/kawaiireview#readme"
+  "homepage": "https://github.com/syzodidntmakeit/kawaiireview#readme",
+  "dependencies": {
+    "astro": "^5.15.9"
+  },
+  "devDependencies": {
+    "eslint": "^8.57.0",
+    "eslint-plugin-astro": "^0.31.0",
+    "prettier": "^3.2.5",
+    "prettier-plugin-astro": "^0.13.0"
+  }
 }

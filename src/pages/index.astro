@@ -1,0 +1,81 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+
+const animeEntries = await getCollection('anime');
+const albumEntries = await getCollection('album');
+
+const recentAnime = animeEntries
+  .sort((a, b) => new Date(b.data.created || 0).valueOf() - new Date(a.data.created || 0).valueOf())
+  .slice(0, 20);
+
+const recentAlbums = albumEntries
+  .sort((a, b) => new Date(b.data.created || 0).valueOf() - new Date(a.data.created || 0).valueOf())
+  .slice(0, 20);
+---
+
+<BaseLayout title="Home">
+  <main class="container">
+    <section id="anime">
+      <div class="section-head">
+        <div>
+          <h2 class="section-title">Anime</h2>
+          <span class="section-meta">Watchlist picks</span>
+        </div>
+        <a class="see-more" href="/anime/all-anime">See more →</a>
+      </div>
+      <div class="scroll-wrap">
+        <button class="scroll-arrow left" data-target="anime-strip" data-dir="left" aria-label="Scroll anime left">←</button>
+        <div class="card-strip" id="anime-strip">
+          {recentAnime.map(entry => (
+            <article class="card">
+              <a href={`/anime/${entry.slug}`} class={`cover cover-portrait ${!entry.data.cover ? 'placeholder' : ''}`}>
+                {entry.data.cover ? (
+                  <img src={entry.data.cover.src} alt={`${entry.data.title} cover`} class="cover-media" />
+                ) : (
+                  <span>{entry.data.title}</span>
+                )}
+              </a>
+              <div class="title-line">
+                <h3>{entry.data.title}</h3>
+              </div>
+              <div class="meta">{entry.data.studio || 'Unknown'}</div>
+            </article>
+          ))}
+        </div>
+        <button class="scroll-arrow right" data-target="anime-strip" data-dir="right" aria-label="Scroll anime right">→</button>
+      </div>
+    </section>
+
+    <section id="albums">
+      <div class="section-head">
+        <div>
+          <h2 class="section-title">Albums</h2>
+          <span class="section-meta">Current spins</span>
+        </div>
+        <a class="see-more" href="/album/all-album">See more →</a>
+      </div>
+      <div class="scroll-wrap">
+        <button class="scroll-arrow left" data-target="album-strip" data-dir="left" aria-label="Scroll albums left">←</button>
+        <div class="card-strip" id="album-strip">
+          {recentAlbums.map(entry => (
+            <article class="card">
+              <a href={`/album/${entry.slug}`} class={`cover cover-square ${!entry.data.cover ? 'placeholder' : ''}`}>
+                {entry.data.cover ? (
+                  <img src={entry.data.cover.src} alt={`${entry.data.title} cover`} class="cover-media" />
+                ) : (
+                  <span>{entry.data.title}</span>
+                )}
+              </a>
+              <div class="title-line">
+                <h3>{entry.data.title}</h3>
+              </div>
+              <div class="meta">{entry.data.artist || 'Unknown'}</div>
+            </article>
+          ))}
+        </div>
+        <button class="scroll-arrow right" data-target="album-strip" data-dir="right" aria-label="Scroll albums right">→</button>
+      </div>
+    </section>
+  </main>
+</BaseLayout>
